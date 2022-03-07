@@ -1,29 +1,65 @@
-chrome.browserAction.onClicked.addListener(function(tab) {
+// class: pulse-component-wrapper board-id-1864591278
+// id: pulse-2137866214, class: pulse-component single-item-height grid-pulse with-menu can-edit open
+
+//document.getElementsByClassName('pulse-component single-item-height') 
+
+const code = `
+console.log('code excuted');
+function mondayExtensionTick() {
+    for (const item of document.getElementsByClassName('pulse-component single-item-height')) {
+        const pulseId = item.id.split('-')[1];
+        const boardElem = item.parentElement.parentElement;
+        const boardId = boardElem.classList[1].split('-')[2];
+    
+        item.style['backgroundColor'] = 'var(--primary-selected-color)';
+        item.addEventListener('click', e => {
+            if (window.location.href.includes('monday.com/my_work')) {
+                item.outerHTML = item.outerHTML;
+                const url = \`https://5ml.monday.com/boards/\${boardId}/pulses/\${pulseId}\`;
+                window.open(url, '_blank').focus();
+                e.stopPropagation();
+            }
+        });
+    }
+}
+
+if (window.mondayExtensionTickInterval == undefined) {
+    console.log('set tick interval');
+    window.mondayExtensionTickInterval = setInterval(mondayExtensionTick, 100);
+}
+`
+
+chrome.browserAction.onClicked.addListener(function (tab) {
     chrome.tabs.executeScript(null, {
-        code: `
-            document.getElementsByClassName('cu-task-header__section')[0].getElementsByClassName('cu-user-group')[0].click();
-            document.getElementsByClassName("user-list-item")[0].click();
-        `
+        code,
     });
 });
 
-var btn = `<button
-style="
-    width: 40px;
-    height: 40px;
-    background-color: #feb;"
-onclick="document.getElementsByClassName('cu-task-header__section')[0].getElementsByClassName('cu-user-group')[0].click();document.getElementsByClassName('user-list-item')[0].click();"
->ME</button>`;
+chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+    console.log(changeInfo)
+    if (changeInfo.url && changeInfo.url.includes('monday.com/my_work')) {
+        chrome.tabs.executeScript(null, {
+            code,
+        });
+    }
+})
 
-chrome.webNavigation.onHistoryStateUpdated.addListener(function() {
+/*
+chrome.webNavigation.onCompleted.addListener(function () {
     chrome.tabs.executeScript(null, {
-        code: `
-        var template = document.createElement('template');
-        var btn = \`${btn}\`.trim();
-        template.innerHTML = btn;
-        var el = template.content.firstChild;
-        var n = document.getElementsByClassName('cu-task-header__section')[0];
-        n.parentNode.insertBefore(el, n.nextSibling);
-        `
+        code,
     });
-}, {url: [{urlMatches : 'https://app.clickup.com/t/*'}]});
+}, { url: [{ urlMatches: 'https://5ml.monday.com/my_work*' }] });
+
+chrome.webNavigation.onDOMContentLoaded.addListener(function () {
+    chrome.tabs.executeScript(null, {
+        code,
+    });
+}, { url: [{ urlMatches: 'https://5ml.monday.com/my_work*' }] });
+
+chrome.webNavigation.onHistoryStateUpdated.addListener(function () {
+    chrome.tabs.executeScript(null, {
+        code,
+    });
+}, { url: [{ urlMatches: 'https://5ml.monday.com/my_work*' }] });
+*/
